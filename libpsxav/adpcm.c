@@ -266,6 +266,8 @@ static inline void psx_audio_xa_sync_subheader_copy(psx_cdrom_sector_mode2_t *bu
 static void psx_audio_xa_encode_init_sector(psx_cdrom_sector_mode2_t *buffer, int lba, psx_audio_xa_settings_t settings) {
 	if (settings.format == PSX_AUDIO_XA_FORMAT_XACD)
 		psx_cdrom_init_sector((psx_cdrom_sector_t *)buffer, lba, PSX_CDROM_SECTOR_TYPE_MODE2_FORM2);
+	else if (settings.format == PSX_AUDIO_XA_FORMAT_XA)
+		psx_cdrom_init_xa_subheader(buffer->subheader, PSX_CDROM_SECTOR_TYPE_MODE2_FORM2);
 
 	buffer->subheader[0].file = settings.file_number;
 	buffer->subheader[0].channel = settings.channel_number & PSX_CDROM_SECTOR_XA_CHANNEL_MASK;
@@ -384,11 +386,9 @@ int psx_audio_spu_encode_simple(const int16_t *samples, int sample_count, uint8_
 		uint8_t *last_block = output + length - PSX_AUDIO_SPU_BLOCK_SIZE;
 
 		if (loop_start < 0) {
-			last_block[1] |= PSX_AUDIO_SPU_LOOP_END;
-
 			// Insert trailing looping block
 			memset(output + length, 0, PSX_AUDIO_SPU_BLOCK_SIZE);
-			output[length + 1] = PSX_AUDIO_SPU_LOOP_START | PSX_AUDIO_SPU_LOOP_END;
+			output[length + 1] = PSX_AUDIO_SPU_LOOP_TRAP;
 
 			length += PSX_AUDIO_SPU_BLOCK_SIZE;
 		} else {
